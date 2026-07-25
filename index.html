@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#e9e6dd">
+<title>Cruzadas SBA</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow+Condensed:wght@400;500;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --papel:#e9e6dd;
+  --branco:#fbfaf6;
+  --tinta:#15130e;
+  --bloco:#15130e;
+  --vermelho:#cc1122;
+  --vermelho-fraco:#f6dade;
+  --vermelho-medio:#eeb9c0;
+  --cinza:#7c776c;
+  --linha:#15130e;
+  --cel:26px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--papel);color:var(--tinta);
+  font-family:"Barlow",system-ui,sans-serif;font-size:15px;line-height:1.4;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+
+/* ============ capa / cabeçalho de revista ============ */
+.capa{background:var(--branco);border-bottom:3px solid var(--tinta)}
+.masthead{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 11px 5px;border-bottom:1px solid var(--tinta);
+}
+.logo{
+  font-family:"Archivo Black",sans-serif;font-size:19px;letter-spacing:-.02em;
+  text-transform:uppercase;line-height:1;
+}
+.logo em{font-style:normal;color:var(--vermelho)}
+.selo{
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:10px;
+  letter-spacing:.11em;text-transform:uppercase;color:var(--vermelho);
+  border:1.5px solid var(--vermelho);padding:2px 5px;line-height:1;
+}
+.faixa{
+  background:var(--vermelho);color:#fff;padding:4px 11px 5px;
+  font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:14px;
+  letter-spacing:.05em;text-transform:uppercase;
+}
+.dados{
+  display:flex;gap:0;border-top:1px solid var(--tinta);
+  font-family:"Barlow Condensed",sans-serif;font-size:12px;font-weight:500;
+  letter-spacing:.06em;text-transform:uppercase;
+}
+.dados span{
+  flex:1;padding:3px 8px;border-right:1px solid var(--tinta);text-align:center;
+}
+.dados span:last-child{border-right:0}
+.dados b{font-weight:700;letter-spacing:.15em}
+
+/* ============ grade ============ */
+.tabuleiro{
+  overflow:auto;-webkit-overflow-scrolling:touch;
+  padding:12px 8px;text-align:center;
+}
+.grade{
+  display:inline-grid;gap:0;
+  border:2.5px solid var(--linha);background:var(--linha);
+}
+.cel{
+  width:var(--cel);height:var(--cel);position:relative;background:var(--branco);
+  border-right:1px solid var(--linha);border-bottom:1px solid var(--linha);
+  display:flex;align-items:center;justify-content:center;
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;
+  font-size:calc(var(--cel)*.62);line-height:1;text-transform:uppercase;
+}
+.bloco{background:var(--bloco);border-color:var(--bloco)}
+.num{
+  position:absolute;top:0;left:1.5px;
+  font-family:"Barlow Condensed",sans-serif;font-weight:600;
+  font-size:calc(var(--cel)*.3);line-height:1.05;color:var(--cinza);
+}
+.palavra-ativa{background:var(--vermelho-fraco)}
+.cel-ativa{background:var(--vermelho-medio);box-shadow:inset 0 0 0 2px var(--vermelho)}
+.cel.erro{color:var(--vermelho)}
+.cel.erro::after{
+  content:"";position:absolute;left:14%;right:14%;top:52%;height:1.5px;
+  background:var(--vermelho);transform:rotate(-16deg);
+}
+.cel.revelado{color:var(--cinza)}
+
+/* ============ listas de dicas ============ */
+.listas{padding:2px 11px 16px;background:var(--branco);border-top:1px solid var(--tinta)}
+.listas h3{
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:13px;
+  letter-spacing:.14em;text-transform:uppercase;margin:12px 0 4px;
+  border-bottom:2px solid var(--tinta);padding-bottom:2px;
+  break-after:avoid;
+}
+.pista{
+  display:flex;gap:6px;padding:2.5px 0;font-family:"Barlow Condensed",sans-serif;
+  font-size:14px;line-height:1.24;break-inside:avoid;
+}
+.pista b{font-weight:700;min-width:20px;text-align:right;flex:none}
+.pista.ativa{background:var(--vermelho-fraco);box-shadow:-4px 0 0 var(--vermelho)}
+.pista.feita b, .pista.feita span{color:var(--cinza);text-decoration:line-through}
+
+/* ============ ferramentas ============ */
+.ferramentas{
+  display:flex;gap:4px;padding:8px 8px 6px;justify-content:center;flex-wrap:wrap;
+  background:var(--papel);
+}
+.bt{
+  font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:12px;
+  letter-spacing:.08em;text-transform:uppercase;padding:5px 9px;
+  border:1.5px solid var(--tinta);background:var(--branco);
+}
+.bt:active{background:var(--tinta);color:var(--branco)}
+.bt.vermelho{border-color:var(--vermelho);color:var(--vermelho)}
+.sel{
+  font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:12px;
+  letter-spacing:.08em;text-transform:uppercase;padding:5px 6px;
+  border:1.5px solid var(--tinta);background:var(--branco);
+}
+
+/* ============ barra de dica + teclado ============ */
+.barra{position:sticky;bottom:0;z-index:5;background:var(--branco);border-top:2.5px solid var(--tinta)}
+.dica-linha{display:flex;border-bottom:1px solid var(--tinta)}
+.nav{width:36px;flex:none;font-size:20px;color:var(--vermelho);font-weight:700}
+.nav:active{background:var(--vermelho-fraco)}
+.dica{flex:1;padding:6px 4px;min-height:50px;display:flex;flex-direction:column;justify-content:center}
+.dica-tag{
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:10.5px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--vermelho);
+}
+.dica-txt{font-size:13.5px;line-height:1.3}
+.teclado{padding:4px 3px 6px}
+.linha{display:flex;justify-content:center;gap:3px;margin-bottom:4px}
+.tecla{
+  flex:1;max-width:34px;height:38px;background:var(--branco);
+  border:1.5px solid var(--tinta);font-family:"Barlow Condensed",sans-serif;
+  font-weight:600;font-size:16px;display:flex;align-items:center;justify-content:center;
+}
+.tecla:active{background:var(--vermelho-medio)}
+.tecla.larga{max-width:50px;color:var(--vermelho)}
+
+/* ============ gabarito em tela ============ */
+.folha{position:fixed;inset:0;z-index:20;background:var(--papel);overflow-y:auto;padding:0 0 40px;display:none}
+.folha.aberta{display:block}
+.folha-topo{
+  position:sticky;top:0;background:var(--vermelho);color:#fff;
+  padding:7px 11px;display:flex;justify-content:space-between;align-items:center;
+  font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:15px;
+  letter-spacing:.12em;text-transform:uppercase;
+}
+.folha-topo .bt{border-color:#fff;color:#fff;background:transparent}
+.folha-corpo{padding:12px 11px}
+.item{padding:7px 0;border-bottom:1px solid #cfcabd}
+.item-cab{display:flex;gap:7px;align-items:baseline}
+.item-n{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:13px;color:var(--vermelho);min-width:30px}
+.item-r{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:16px;letter-spacing:.02em}
+.item-d{font-size:13px;margin:2px 0 0 37px}
+.item-f{font-family:"Barlow Condensed",sans-serif;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--cinza);margin:2px 0 0 37px}
+.nota{border:1.5px solid var(--vermelho);padding:7px 9px;margin-bottom:12px;font-size:12.5px;color:var(--vermelho)}
+
+.msg{
+  position:fixed;left:50%;transform:translateX(-50%);top:12px;z-index:30;
+  background:var(--tinta);color:var(--branco);padding:6px 13px;
+  font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:13px;
+  letter-spacing:.07em;text-transform:uppercase;opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.msg.ver{opacity:1}
+:focus-visible{outline:2px solid var(--vermelho);outline-offset:1px}
+.so-impressao{display:none}
+.dica.resolvida{background:#eef6f0;border-left:4px solid var(--verde,#1a6e50)}
+.dica-tag.ok{color:var(--verde,#1a6e50)}
+.dica-txt.expl{font-size:12.8px;line-height:1.34}
+.cel.brinde{background:#f2ede0}
+.cel.brinde .letra{color:#8a7f63}
+.nav.flag{font-size:15px;color:var(--cinza)}
+.nav.flag.on{color:var(--vermelho)}
+.linha2{display:flex;gap:4px;padding:0 8px 8px;justify-content:center;flex-wrap:wrap}
+
+.progresso{display:flex;align-items:center;gap:7px;padding:3px 9px 4px;border-top:1px solid var(--tinta);
+  font-family:"Barlow Condensed",sans-serif;font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+.trilho{flex:1;height:7px;border:1px solid var(--tinta);background:var(--branco)}
+.trilho div{height:100%;background:var(--vermelho);width:0%;transition:width .25s}
+.cel.travado{background:#eef3ee}
+.cel.travado .letra{color:var(--verde,#1a6e50)}
+.pista .pag{font-style:normal;font-weight:600;color:var(--vermelho);font-size:11.5px;margin-left:3px}
+.selo-fim{position:fixed;inset:0;z-index:25;background:rgba(21,19,14,.82);display:none;
+  align-items:center;justify-content:center;padding:20px}
+.selo-fim.aberta{display:flex}
+.cartao{background:var(--branco);border:3px solid var(--tinta);padding:18px 20px;max-width:330px;width:100%;text-align:center}
+.cartao h4{font-family:"Archivo Black",sans-serif;font-size:26px;margin:0;text-transform:uppercase;letter-spacing:-.02em}
+.cartao .medalha{font-family:"Archivo Black",sans-serif;font-size:15px;color:var(--vermelho);letter-spacing:.1em;margin:2px 0 10px}
+.cartao dl{display:grid;grid-template-columns:1fr auto;gap:2px 10px;margin:0 0 12px;
+  font-family:"Barlow Condensed",sans-serif;font-size:14px;text-align:left}
+.cartao dt{text-transform:uppercase;letter-spacing:.06em;color:var(--cinza)}
+.cartao dd{margin:0;font-weight:700;text-align:right}
+.limpa{border:2px solid var(--vermelho);color:var(--vermelho);font-family:"Barlow Condensed",sans-serif;
+  font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:3px;margin-bottom:10px;font-size:12px}
+
+
+@media (min-width:560px){
+  .listas{column-count:2;column-gap:20px}
+  .listas h3{column-span:all}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ============ impressão ============ */
+@media print{
+  @page{margin:11mm}
+  body{background:#fff;color:#000;font-size:11pt;padding:0}
+  .nao-imprimir{display:none!important}
+  .so-impressao{display:block}
+  .capa{border-bottom-width:2.5pt}
+  .tabuleiro{overflow:visible;padding:6mm 0 4mm}
+  .grade{--cel:8.5mm;break-inside:avoid;border-width:2pt}
+  .cel{border-width:.6pt}
+  .letra{visibility:hidden}          /* grade sai em branco para resolver no papel */
+  .palavra-ativa,.cel-ativa{background:#fff;box-shadow:none}
+  .listas{column-count:2;column-gap:8mm;border-top:1.5pt solid #000;background:#fff}
+  .pista.ativa{background:none;box-shadow:none}
+  .pista.feita b,.pista.feita span{color:#000;text-decoration:none}
+  .quebra{break-before:page}
+  .folha{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<header class="capa">
+  <div class="masthead">
+    <span class="logo">Cruzadas <em>SBA</em></span>
+    <span class="selo">Tratado SAESP</span>
+  </div>
+  <div class="faixa" id="f-tema"><span id="f-tema-txt">carregando…</span></div>
+  <div class="dados">
+    <span id="f-grade">19×19</span>
+    <span>Nível <b id="f-nivel">■■■□</b></span>
+    <span id="f-pontos" class="nao-imprimir">0 pts</span>
+  </div>
+  <div class="progresso nao-imprimir">
+    <div class="trilho"><div id="barra"></div></div>
+    <span id="f-dom">0/0 dominados</span>
+  </div>
+</header>
+
+<div class="tabuleiro" id="tabuleiro"><div class="grade" id="grade"></div></div>
+
+<div class="ferramentas nao-imprimir">
+  <select class="sel" id="sel-tam">
+    <option value="13">13×13</option>
+    <option value="15">15×15</option>
+    <option value="17">17×17</option>
+    <option value="19" selected>19×19</option>
+    <option value="21">21×21</option>
+  </select>
+  <button class="bt" id="bt-menos">A−</button>
+  <button class="bt" id="bt-mais">A+</button>
+  <button class="bt" id="bt-verificar">Verificar</button>
+  <button class="bt" id="bt-letra">Letra</button>
+  <button class="bt" id="bt-palavra">Palavra</button>
+  <button class="bt vermelho" id="bt-imprimir">Imprimir</button>
+  <button class="bt vermelho" id="bt-gabarito">Gabarito</button>
+  <button class="bt vermelho" id="bt-nova">Nova</button>
+</div>
+
+<div class="linha2 nao-imprimir">
+  <select class="sel" id="sel-edicao"><option value="">carregando…</option></select>
+  <select class="sel" id="sel-foco"><option value="">Foco: nenhum</option>
+    <option value="n34">Só nível 3 e 4</option><option value="n12">Só nível 1 e 2</option></select>
+  <select class="sel" id="sel-sub"><option value="">Subitem: todos</option></select>
+  <select class="sel" id="sel-brinde"><option value="0">Sem brinde</option>
+    <option value="0.15" selected>Poucas letras</option><option value="0.3">Mais letras</option></select>
+  <label class="sel"><input type="checkbox" id="ck-viciar" checked> Priorizar não dominados</label>
+  <button class="bt vermelho" id="bt-defeitos">Defeitos</button>
+</div>
+<section class="listas">
+  <h3>Horizontais</h3><div id="lista-h"></div>
+  <h3>Verticais</h3><div id="lista-v"></div>
+</section>
+
+<div class="so-impressao quebra" id="impressao-gabarito"></div>
+
+<div class="barra nao-imprimir">
+  <div class="dica-linha">
+    <button class="nav" id="nav-ant" aria-label="Palavra anterior">‹</button>
+    <div class="dica">
+      <div class="dica-tag" id="dica-tag">—</div>
+      <div class="dica-txt" id="dica-txt">Toque numa casa para começar.</div>
+    </div>
+    <button class="nav flag" id="bt-flag" aria-label="Marcar dica ruim">⚑</button>
+    <button class="nav" id="nav-prox" aria-label="Próxima palavra">›</button>
+  </div>
+  <div class="teclado" id="teclado"></div>
+</div>
+
+<div class="folha nao-imprimir" id="folha">
+  <div class="folha-topo">Gabarito <button class="bt" id="bt-fechar">Fechar</button></div>
+  <div class="folha-corpo">
+    <p class="nota">Todas as respostas saíram do <b>Tratado de Anestesiologia SAESP</b> — capítulos 44 (Hipnóticos), 46 (Opioides) e 101 (Anestesia Venosa Total). A página citada é a <b>página do PDF que você enviou</b>: o arquivo é conversão de e-book e não traz a numeração impressa do livro.</p>
+    <div id="lista-gab"></div>
+  </div>
+</div>
+
+<div class="selo-fim nao-imprimir" id="selo-fim"><div class="cartao">
+  <h4>Concluída</h4><div class="medalha" id="s-medalha">Bronze</div>
+  <div class="limpa" id="s-limpa" style="display:none">Grade limpa</div>
+  <dl><dt>Pontos</dt><dd id="s-pontos">0</dd>
+      <dt>Tempo somado</dt><dd id="s-tempo">00:00</dd>
+      <dt>Reveladas</dt><dd id="s-rev">0</dd>
+      <dt>Verificações</dt><dd id="s-ver">0</dd>
+      <dt>Dominados no Ponto</dt><dd id="s-dom">0</dd></dl>
+  <button class="bt" id="s-fechar">Fechar</button>
+</div></div>
+<div class="msg" id="msg"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
