@@ -224,17 +224,25 @@ function pintar(){
 function atualizar(){
   pintar();
   const e=entradaAtual();if(!e)return;
-  $('dica-tag').classList.remove('ok');
-  $('dica-txt').classList.remove('expl');
-  document.querySelector('.dica').classList.remove('resolvida');
-  $('bt-flag').classList.toggle('on',defeitos.some(d=>d.id===e.verbete.id));
-  $('dica-tag').textContent=e.n+' '+(e.dir==='H'?'HORIZONTAL':'VERTICAL')
-    +' · '+e.palavra.length+' letras · nível '+e.verbete.dif+' · vale '+(e.verbete.dif*10)+' pts';
-  $('dica-txt').textContent=e.verbete.dica;
+  const v=e.verbete;
+  const tag=$('dica-tag'), txt=$('dica-txt'), cx=document.querySelector('.dica');
+  $('bt-flag').classList.toggle('on',defeitos.some(d=>d.id===v.id));
+  if(e.resolvida && v.expl){
+    tag.textContent='\u2713 '+v.display.toUpperCase()+' \u00b7 '+v.subitem+' \u00b7 P. '+v.fonte.pagina;
+    tag.classList.add('ok'); txt.textContent=v.expl; txt.classList.add('expl');
+    cx.classList.add('resolvida');
+  }else{
+    tag.classList.remove('ok'); txt.classList.remove('expl'); cx.classList.remove('resolvida');
+    tag.textContent=e.n+' '+(e.dir==='H'?'HORIZONTAL':'VERTICAL')
+      +' \u00b7 '+e.palavra.length+' letras \u00b7 n\u00edvel '+v.dif
+      +(e.resolvida?'':' \u00b7 vale '+(v.dif*10)+' pts');
+    txt.textContent=e.resolvida?v.display+' \u2014 '+v.dica:v.dica;
+  }
   document.querySelectorAll('.pista').forEach(p=>p.classList.remove('ativa'));
   const p=document.querySelector(`.pista[data-k="${e.n}${e.dir}"]`);
   if(p)p.classList.add('ativa');
 }
+
 function listar(){
   ['H','V'].forEach(d=>{
     const alvo=$(d==='H'?'lista-h':'lista-v');alvo.innerHTML='';
@@ -425,18 +433,22 @@ function aviso(t){const m=$('msg');m.textContent=t;m.classList.add('ver');
 function itensGabarito(){
   let h='';
   ['H','V'].forEach(d=>{
-    h+='<h3 style="font-family:Barlow Condensed;font-weight:700;letter-spacing:.12em;text-transform:uppercase;border-bottom:2px solid #15130e;margin:14px 0 4px;padding-bottom:2px">'
+    h+='<h3 style="font-family:Barlow Condensed;font-weight:700;letter-spacing:.12em;'
+      +'text-transform:uppercase;border-bottom:2px solid #15130e;margin:14px 0 4px;padding-bottom:2px">'
       +(d==='H'?'Horizontais':'Verticais')+'</h3>';
     P.entradas.filter(e=>e.dir===d).sort((a,b)=>a.n-b.n).forEach(e=>{
       const v=e.verbete;
+      const sub=v.subitem+((SUBITENS[v.subitem]&&SUBITENS[v.subitem].t)?' '+SUBITENS[v.subitem].t:'');
       h+='<div class="item"><div class="item-cab"><span class="item-n">'+e.n+e.dir+'</span>'
        +'<span class="item-r">'+v.display+'</span></div>'
        +'<div class="item-d">'+v.dica+'</div>'
-       +'<div class="item-f">'+v.subitem+((SUBITENS[v.subitem]&&SUBITENS[v.subitem].t)?' '+SUBITENS[v.subitem].t:'')+' · '+v.fonte.obra+', p. '+v.fonte.pagina+'</div></div>';
+       +(v.expl?'<div class="item-x">'+v.expl+'</div>':'')
+       +'<div class="item-f">'+sub+' \u00b7 '+v.fonte.obra+', p. '+v.fonte.pagina+'</div></div>';
     });
   });
   return h;
 }
+
 function abrirGabarito(){$('lista-gab').innerHTML=itensGabarito();$('folha').classList.add('aberta')}
 function imprimir(){
   $('impressao-gabarito').innerHTML=
