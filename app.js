@@ -513,14 +513,26 @@ async function carregarEdicao(id){
 
 let INDICE=[];
 (async function(){
+  const url = new URL('dados/indice.json', location.href).href;
   try{
-    const r = await fetch('dados/indice.json', {cache:'no-cache'});
+    const r = await fetch(url, {cache:'no-cache'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
     INDICE = await r.json();
+    if(!Array.isArray(INDICE) || !INDICE.length) throw new Error('índice vazio');
   }catch(e){
+    const arquivo = location.protocol === 'file:';
     document.body.insertAdjacentHTML('afterbegin',
-      '<p style="padding:14px;color:#cc1122">Não consegui ler dados/indice.json. '+
-      'Abra o app por um servidor (GitHub Pages ou <code>python3 -m http.server</code>), '+
-      'não por duplo clique no arquivo.</p>');
+      '<div style="padding:14px;font-family:system-ui;line-height:1.5;background:#fff;border-bottom:3px solid #cc1122">'
+      + '<b style="color:#cc1122">Não consegui carregar as edições.</b><br>'
+      + 'Tentei ler: <code>'+url+'</code><br>Resultado: <b>'+e.message+'</b><br><br>'
+      + (arquivo
+          ? 'Você abriu o arquivo por duplo clique. O navegador bloqueia leitura de dados assim. '
+            + 'Rode <code>python3 -m http.server</code> na pasta do site e abra <code>http://localhost:8000</code>.'
+          : 'O site está sendo servido, então o problema é o arquivo em si. Confira no repositório se existe a pasta '
+            + '<code>dados</code> com <code>indice.json</code> e os bancos dentro dela. '
+            + 'No GitHub, use <b>Add file → Create new file</b> e digite <code>dados/indice.json</code> no nome: '
+            + 'a barra cria a pasta.')
+      + '</div>');
     return;
   }
   const sel=$('sel-edicao'); sel.innerHTML='';
