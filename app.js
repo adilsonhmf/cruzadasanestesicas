@@ -1,4 +1,3 @@
-
 /* =========================================================
    BANCO DE VERBETES — demo, Ponto 15
    Formato real: {id, resposta_grade, resposta_display, dica, dif, fonte:{obra,pagina}}
@@ -102,7 +101,9 @@ function gerar(pool,tam,seed){
 
 /* ================= APP ================= */
 const $=id=>document.getElementById(id);
-let CHAVE='', CHAVE_G='', CHAVE_D='';
+const CHAVE_DOM='cruzadas:dominados';
+let CHAVE_G='', CHAVE_D='';
+let SUBITENS={};
 const Mem={};
 const Store={
   async get(k){
@@ -329,7 +330,7 @@ function checarPalavras(){
     cs.forEach(([r,c])=>{trava[r][c]=true;marcas[r][c]=''});
     const pts=e.suja?0:e.verbete.dif*10;
     pontos+=pts;
-    if(!e.suja){dominados.add(e.verbete.id);Store.set(CHAVE,[...dominados])}
+    if(!e.suja){dominados.add(e.verbete.id);Store.set(CHAVE_DOM,[...dominados])}
     const p=document.querySelector(`.pista[data-k="${e.n}${e.dir}"]`);
     if(p){p.classList.add('feita');
       if(!p.querySelector('.pag')){
@@ -431,7 +432,7 @@ function itensGabarito(){
       h+='<div class="item"><div class="item-cab"><span class="item-n">'+e.n+e.dir+'</span>'
        +'<span class="item-r">'+v.display+'</span></div>'
        +'<div class="item-d">'+v.dica+'</div>'
-       +'<div class="item-f">Subitem '+v.subitem+' · '+v.fonte.obra+', p. '+v.fonte.pagina+'</div></div>';
+       +'<div class="item-f">'+v.subitem+((SUBITENS[v.subitem]&&SUBITENS[v.subitem].t)?' '+SUBITENS[v.subitem].t:'')+' · '+v.fonte.obra+', p. '+v.fonte.pagina+'</div></div>';
     });
   });
   return h;
@@ -484,29 +485,54 @@ $('nav-ant').onclick=()=>pularEntrada(-1);
 $('nav-prox').onclick=()=>pularEntrada(1);
 
 async function carregarEdicao(id){
-  const meta = INDICE.find(e=>e.id===id) || INDICE[0];
-  EDICAO = meta;
-  const r = await fetch('dados/'+meta.arquivo, {cache:'no-cache'});
-  if(!r.ok) throw new Error('não consegui carregar '+meta.arquivo);
-  const dados = await r.json();
-  B = dados.map((v,i)=>({id:'v'+i, g:v.grade, display:v.display, dica:v.dica,
-      dif:v.dif, subitem:v.subitem, expl:v.expl||'',
-      fonte:{obra:v.fonte.obra, pagina:v.fonte.pagina, termo:v.fonte.termo||v.display}}));
-  CHAVE   = 'cruzadas:'+meta.id;
-  CHAVE_G = 'cruzadas:'+meta.id+':grade';
-  CHAVE_D = 'cruzadas:'+meta.id+':defeitos';
-  $('f-tema-txt').textContent = meta.tema;
-  document.title = meta.tema + ' · Cruzadas SBA';
-  dominados = new Set(await Store.get(CHAVE) || []);
-  defeitos  = await Store.get(CHAVE_D) || [];
-  // repovoa o filtro de subitem desta edição
-  const sel=$('sel-sub'); sel.innerHTML='<option value="">Subitem: todos</option>';
-  [...new Set(B.map(v=>v.subitem))].sort().forEach(sb=>{
+  let metas, tema, chaveId;
+  if(id==='__mix__'){
+    metas=INDICE; chaveId='mix';
+    tema='Grade aleatória · '+INDICE.length+(INDICE.length>1?' edições':' edição');
+  }else{
+    const m=INDICE.find(e=>e.id===id)||INDICE[0];
+    metas=[m]; chaveId=m.id; tema=m.tema;
+  }
+  EDICAO={id:chaveId, tema};
+  B=[];
+  const vistos=new Set();
+  for(const m of metas){
+    const r=await fetch('dados/'+m.arquivo,{cache:'no-cache'});
+    if(!r.ok) throw new Error('não consegui carregar '+m.arquivo);
+    for(const v of await r.json()){
+      if(vistos.has(v.grade)) continue;      // mesma resposta em duas edições entra uma vez só
+      vistos.add(v.grade);
+      B.push({id:m.id+':'+v.grade, g:v.grade, display:v.display, dica:v.dica,
+              dif:v.dif, subitem:v.subitem, expl:v.expl||'',
+              fonte:{obra:v.fonte.obra, pagina:v.fonte.pagina, termo:v.fonte.termo||v.display}});
+    }
+  }
+  CHAVE_G='cruzadas:'+chaveId+':grade';
+  CHAVE_D='cruzadas:'+chaveId+':defeitos';
+  $('f-tema-txt').textContent=tema;
+  document.title=tema+' · Cruzadas SBA';
+  dominados=new Set(await Store.get(CHAVE_DOM) || []);
+  defeitos =await Store.get(CHAVE_D) || [];
+
+  // filtro de subitem com o nome do subitem, ordenado por número
+  const sel=$('sel-sub'); sel.innerHTML='<option value="">Dificuldade e subitem: todos</option>';
+  const num=c=>c.split('.').map(Number);
+  [...new Set(B.map(v=>v.subitem))].sort((a,b)=>{
+    const x=num(a),y=num(b);
+    for(let i=0;i<Math.max(x.length,y.length);i++){
+      if((x[i]||0)!==(y[i]||0)) return (x[i]||0)-(y[i]||0);
+    }
+    return 0;
+  }).forEach(sb=>{
     const o=document.createElement('option'); o.value=sb;
-    o.textContent='Subitem '+sb+' ('+B.filter(v=>v.subitem===sb).length+')'; sel.appendChild(o);
+    const nome=(SUBITENS[sb]&&SUBITENS[sb].t)||'';
+    const curto=nome.length>40?nome.slice(0,40)+'…':nome;
+    o.textContent=sb+(curto?' '+curto:'')+' ('+B.filter(v=>v.subitem===sb).length+')';
+    sel.appendChild(o);
   });
-  await Store.set('cruzadas:ultima', meta.id);
-  const g = await Store.get(CHAVE_G);
+
+  await Store.set('cruzadas:ultima', chaveId);
+  const g=await Store.get(CHAVE_G);
   if(g && g.seed!==undefined && restaurar(g)){ $('sel-tam').value=g.tam; return; }
   montar(+$('sel-tam').value||19, Date.now()%100000);
 }
@@ -535,12 +561,23 @@ let INDICE=[];
       + '</div>');
     return;
   }
+  try{
+    const rs=await fetch(new URL('dados/subitens.json',location.href).href,{cache:'no-cache'});
+    if(rs.ok) SUBITENS=await rs.json();
+  }catch(e){ SUBITENS={}; }
+
   const sel=$('sel-edicao'); sel.innerHTML='';
+  if(INDICE.length>1){
+    const o=document.createElement('option');
+    o.value='__mix__'; o.textContent='Grade aleatória — todos os Pontos';
+    sel.appendChild(o);
+  }
   INDICE.forEach(e=>{const o=document.createElement('option');
     o.value=e.id; o.textContent=e.tema+' ('+e.n+')'; sel.appendChild(o)});
   sel.onchange=()=>carregarEdicao(sel.value);
   const ultima = await Store.get('cruzadas:ultima');
-  const alvo = INDICE.some(e=>e.id===ultima) ? ultima : INDICE[0].id;
+  const alvo = (ultima==='mix'&&INDICE.length>1) ? '__mix__'
+    : (INDICE.some(e=>e.id===ultima) ? ultima : INDICE[0].id);
   sel.value = alvo;
   await carregarEdicao(alvo);
   if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
