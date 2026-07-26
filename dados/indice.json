@@ -21,6 +21,17 @@
   "n": 167
  },
  {
+  "id": "p2223",
+  "tema": "Pontos 22 e 23 · Anestesia Inalatória",
+  "modulo": "ME2",
+  "pontos": [
+   22,
+   23
+  ],
+  "arquivo": "p2223.json",
+  "n": 110
+ },
+ {
   "id": "p25",
   "tema": "Ponto 25 · Bloqueios Periféricos",
   "modulo": "ME2",
