@@ -1,4 +1,4 @@
-const CACHE = 'cruzadas-v1.8';
+const CACHE = 'cruzadas-v1.9';
 const BASE = ['./','./index.html','./app.js','./manifest.json','./dados/indice.json'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(BASE)).then(() => self.skipWaiting()));
