@@ -1,52 +1,32 @@
-# Cruzadas SBA
+ O que você faz ao abrir a conversa
 
-App de palavras cruzadas para revisão do conteúdo programático da SBA.
-Estático, sem servidor, funciona offline depois da primeira visita.
+Anexa o livro e escreve algo como:
 
-## Publicar no GitHub Pages (grátis)
+Ponto 22 do edital SBA, usando a skill cruzadas-anestesia.
+Índice atual: https://adilsonhmf.github.io/cruzadasanestesicas/dados/indice.json
 
-1. Crie uma conta em github.com, se ainda não tiver.
-2. **New repository** → nome `cruzadas` → **Public** → Create.
-3. Na página do repositório: **Add file → Upload files**. Arraste
-   `index.html`, `app.js`, `manifest.json`, `sw.js` e a pasta `dados`.
-   Commit.
-4. **Settings → Pages** → em *Source* escolha **Deploy from a branch**,
-   branch `main`, pasta `/ (root)` → Save.
-5. Em um ou dois minutos o endereço aparece:
-   `https://SEU-USUARIO.github.io/cruzadas/`
+Sobre quais livros anexar: só o que aquele Ponto precisa. SAESP e Miller juntos são quase 400 MB — subir os dois toda sessão é lento à toa. Para Ponto de técnica ou farmacologia, Miller costuma bastar. Para tema brasileiro (Pontos 1, 2, 3, 53, 54), só SAESP.
 
-No celular, abra esse endereço e use "Adicionar à tela de início". A partir daí
-ele abre como aplicativo e funciona sem sinal.
+O que acontece na sessão
 
-## Testar antes de publicar
+Confiro a integridade do banco que já existe, se você mandar algum. Se os números não baterem com o registrado, eu te aviso antes de mexer em qualquer coisa.
+Mostro os subitens do Ponto e pergunto qual capítulo usar. Confirme antes de eu extrair — errar o capítulo contamina tudo que vem depois.
+Levanto candidatos subitem por subitem e busco no livro. Te mostro o que ficou de fora por não constar na fonte — essa lista é informação, não fracasso.
+Escrevo dicas e explicações lendo os trechos que a busca devolveu.
+Reancoro as citações — o ancorar.py move cada página para onde o dado realmente está.
+Valido contra o PDF. Só sigo com zero erros e nenhum subitem abaixo de 5 verbetes.
+Você aprova o lote. É aqui que você olha as dicas e diz o que está ruim.
 
-Duplo clique no `index.html` **não funciona** — o navegador bloqueia a leitura
-dos arquivos de dados. Use um servidor local:
+O que volta e o que você sobe
 
-```bash
-cd site
-python3 -m http.server 8000
-```
+Dois arquivos: dados/p22.json e o dados/indice.json atualizado.
 
-E abra `http://localhost:8000`.
+No GitHub, sobe os dois e incrementa o CACHE no sw.js (v3 → v4). index.html e app.js não mudam mais — o motor está pronto.
 
-## Acrescentar uma edição
+Ordem sugerida para o ME2
 
-```bash
-python3 scripts/publicar.py banco.json --site site \
-        --id p22p23 --tema "Pontos 22 e 23 · Anestesia Inalatória" \
-        --modulo ME2 --pontos 22 23
-```
+21 Monitorização · 22+23 Inalatória · 25 Bloqueios periféricos · 26+27+28 Hidroeletrolítico, volemia e hemostasia · 29+30 Urinário e urologia · 31 Obstetrícia · 32 Ortopedia · 33 Abdominal · 34 Otorrino · 35 Oftalmo · 36 Ambulatorial · 20 Metodologia científica
 
-Isso escreve `dados/p22p23.json` e atualiza `dados/indice.json`.
-Suba os dois arquivos para o repositório — `index.html` e `app.js` não mudam.
+Deixei o 20 por último de propósito: metodologia científica tem pouquíssimo substantivo único que vira resposta. O 36 também vai ser magro. Quando chegarmos neles, provavelmente vamos combinar ou aceitar grade menor — e tudo bem.
 
-Depois de publicar uma edição nova, incremente `CACHE` no `sw.js`
-(`cruzadas-v1` → `cruzadas-v2`), senão os aparelhos que já visitaram continuam
-servindo a versão antiga do índice.
-
-## Progresso
-
-Fica no aparelho (localStorage), separado por edição. Trocar de celular ou
-limpar dados do navegador apaga. Sincronizar entre aparelhos exige conta e
-servidor — vale quando houver material suficiente para justificar.
+Comece pelo 21. É rico em vocabulário curto (BIS, TOF, PAM, PVC, capnografia), que é justamente o que faz grade grande fechar.
