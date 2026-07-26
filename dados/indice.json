@@ -9,5 +9,15 @@
   ],
   "arquivo": "p1224.json",
   "n": 129
+ },
+ {
+  "id": "p25",
+  "tema": "Ponto 25 · Bloqueios Periféricos",
+  "modulo": "ME2",
+  "pontos": [
+   25
+  ],
+  "arquivo": "p25.json",
+  "n": 144
  }
 ]
