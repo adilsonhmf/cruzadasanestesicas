@@ -286,13 +286,26 @@ function restaurar(d){
   if(falta)aviso('Retomando · faltam '+falta+' palavras');
   return true;
 }
+const PLANOS=[[0,'Indução'],[10,'Estágio I · Analgesia'],[30,'Estágio II · Excitação'],
+  [70,'Plano 1'],[130,'Plano 2'],[250,'Plano 3'],[500,'Plano 4']];
+function planoDe(n){let r=PLANOS[0];for(const p of PLANOS)if(n>=p[0])r=p;return r}
+
 function placar(){
-  const total=P.g.flat().filter(x=>x!==null).length;
-  const cheias=resp.flat().filter(x=>x).length;
-  $('barra').style.width=(100*cheias/total).toFixed(0)+'%';
-  $('f-pontos').textContent=pontos+' pts';
-  const noPonto=B.filter(v=>dominados.has(v.id)).length;
-  $('f-dom').textContent=noPonto+'/'+B.length+' dominados';
+  const feitas=P?P.entradas.filter(e=>e.resolvida).length:0;
+  $('f-pontos').textContent=pontos;
+  const noBanco=B.filter(v=>dominados.has(v.id)).length;
+  $('f-dom').textContent=noBanco+'/'+B.length;
+  if(P)$('f-grade').textContent=P.W+'×'+P.H+' · '+feitas+'/'+P.entradas.length;
+  const n=dominados.size, at=planoDe(n), prox=PLANOS[PLANOS.indexOf(at)+1];
+  $('f-plano').textContent=at[1];
+  if(prox){
+    const pc=100*(n-at[0])/(prox[0]-at[0]);
+    $('barra').style.width=Math.max(3,Math.min(100,pc)).toFixed(0)+'%';
+    $('f-plano-prox').textContent=(prox[0]-n)+' para '+prox[1];
+  }else{
+    $('barra').style.width='100%';
+    $('f-plano-prox').textContent='profundidade máxima';
+  }
 }
 
 function digitar(L){
@@ -471,7 +484,7 @@ const LIN=['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'];
   });
 })();
 document.addEventListener('keydown',ev=>{
-  if($('folha').classList.contains('aberta'))return;
+  if($('folha').classList.contains('aberta')||$('sheet').classList.contains('aberta'))return;
   const k=ev.key.toUpperCase();
   if(/^[A-Z]$/.test(k)){digitar(k);ev.preventDefault()}
   else if(ev.key==='Backspace'){apagar();ev.preventDefault()}
@@ -479,18 +492,23 @@ document.addEventListener('keydown',ev=>{
   else if(ev.key===' '){dir=dir==='H'?'V':'H';atualizar();ev.preventDefault()}
 });
 $('bt-flag').onclick=marcarDefeito;
-$('bt-defeitos').onclick=verDefeitos;
+$('bt-defeitos').onclick=()=>{fecharSheet();verDefeitos()};
 ['sel-foco','sel-sub','sel-brinde','ck-viciar'].forEach(id=>$(id).onchange=()=>{
-  Store.set(CHAVE_G,null);montar(+$('sel-tam').value,Date.now()%100000)});
+  fecharSheet();Store.set(CHAVE_G,null);montar(+$('sel-tam').value,Date.now()%100000)});
+const sheet=$('sheet');
+const fecharSheet=()=>sheet.classList.remove('aberta');
+$('bt-ajustes').onclick=()=>sheet.classList.add('aberta');
+$('bt-fechar-sheet').onclick=fecharSheet;
+sheet.onclick=ev=>{if(ev.target===sheet)fecharSheet()};
 $('bt-verificar').onclick=verificar;
 $('bt-letra').onclick=revelarLetra;
 $('bt-palavra').onclick=revelarPalavra;
 $('bt-gabarito').onclick=abrirGabarito;
-$('bt-imprimir').onclick=imprimir;
+$('bt-imprimir').onclick=()=>{fecharSheet();imprimir()};
 $('bt-fechar').onclick=()=>$('folha').classList.remove('aberta');
 $('s-fechar').onclick=()=>$('selo-fim').classList.remove('aberta');
 $('bt-nova').onclick=()=>{Store.set(CHAVE_G,null);montar(+$('sel-tam').value,Date.now()%100000)};
-$('sel-tam').onchange=()=>{Store.set(CHAVE_G,null);montar(+$('sel-tam').value,Date.now()%100000)};
+$('sel-tam').onchange=()=>{fecharSheet();Store.set(CHAVE_G,null);montar(+$('sel-tam').value,Date.now()%100000)};
 $('bt-mais').onclick=()=>{cel=Math.min(46,cel+3);aplicarCel()};
 $('bt-menos').onclick=()=>{cel=Math.max(18,cel-3);aplicarCel()};
 $('nav-ant').onclick=()=>pularEntrada(-1);
@@ -586,7 +604,7 @@ let INDICE=[];
   }
   INDICE.forEach(e=>{const o=document.createElement('option');
     o.value=e.id; o.textContent=e.tema+' ('+e.n+')'; sel.appendChild(o)});
-  sel.onchange=()=>carregarEdicao(sel.value);
+  sel.onchange=()=>{$('sheet').classList.remove('aberta');carregarEdicao(sel.value)};
   const ultima = await Store.get('cruzadas:ultima');
   const alvo = (ultima==='mix'&&INDICE.length>1) ? '__mix__'
     : (INDICE.some(e=>e.id===ultima) ? ultima : INDICE[0].id);
